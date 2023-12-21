@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Sign Classification</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+</head>
+<body>
+    <h1>Traffic Sign Classification</h1>
+    <input type="file" id="imageInput" accept="image/*">
+    <button onclick="classifyImage()">Classify</button>
+    <div id="result"></div>
+
+    <script>
+        async function classifyImage() {
+            const imageInput = document.getElementById('imageInput');
+            const resultDiv = document.getElementById('result');
+
+            const model = await tf.loadLayersModel('model.json'); // Load your pre-trained model here
+
+            const image = await loadImage(imageInput.files[0]);
+            const tensor = tf.browser.fromPixels(image)
+                .resizeNearestNeighbor([64, 64]) // Adjust size based on your model input
+                .toFloat()
+                .div(tf.scalar(255))
+                .expandDims();
+
+            const prediction = await model.predict(tensor).data();
+            const classIndex = findClassIndex(prediction);
+
+            resultDiv.innerHTML = `Predicted Class: ${classIndex}`;
+        }
+
+        function findClassIndex(prediction) {
+            // Implement logic to map prediction values to traffic sign classes
+            // This will depend on how your model was trained
+            // For simplicity, assuming classes are represented by indices here
+            return prediction.indexOf(Math.max(...prediction));
+        }
+
+        function loadImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => resolve(img);
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
+</body>
+</html>
